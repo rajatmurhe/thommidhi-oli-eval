@@ -1,10 +1,10 @@
 # Exploring Thommidhi and Oli
 
-This is my exploration of Thommidhi for the AI Engineer internship. I wanted to understand what happens between asking an assistant for help and actually getting the right change saved: which tool it chooses, what it assumes, what the server returns, and whether the final state matches the request.
+This is my exploration of Thommidhi for the AI Engineer internship. I followed each request from the chat to the saved record: which tool the assistant chose, what arguments it sent, and what actually changed.
 
 I used the real product and tested Oli through Claude and native Codex CLI. Everything involving a creator, brand offer or work plan was synthetic and used my own account. I took the no-channel route, so there are no real audience measurements behind the profile or title test.
 
-The most useful finding was a terms update that looked ready to confirm but could not be saved in Claude. Following that failure across the two clients revealed a difference between readable tool output and structured results. That became the starting point for the evaluation and tool-design work here.
+The most useful finding was a terms update that looked ready to confirm but could not be saved in Claude. Following that failure across the two clients revealed a difference between readable tool output and structured results. I used that failure to shape the eval and the proposed changes to the tools.
 
 ## What I did
 
@@ -20,17 +20,17 @@ Then I worked through the same broad workflow in two assistants:
 
 Both assistants eventually saved a separate deal and plan. Fresh reads confirmed two deals in `talks`, with exactly one linked plan for each. Claude's terms-confirmation issue remained unresolved in that client; the terms were saved through the Codex recovery. No real brand was contacted, and no deal was marked agreed.
 
-These were diagnostic runs. The clients had different models, permission flows and connection methods, and some prompts needed correction. I kept those differences in the evidence instead of turning this into a model leaderboard.
+I used these runs to investigate failures. The clients had different models, permission flows and connection methods, and some prompts needed correction. Those differences make a direct ranking of the two models unreliable.
 
 ## What broke, and what held up
 
-**The confirmation ID did not reach both clients in a usable form.** Claude's readable preview told it to confirm with a `change_id`, but did not expose one. It refused to invent the ID. Native Codex received the ID in structured output. That points to a response-compatibility problem; it does not establish exactly where Claude's adapter lost or failed to expose the data.
+**Claude could not confirm the terms.** Claude's readable preview told it to confirm with a `change_id`, but did not expose one. It refused to invent the ID. Native Codex received the ID in structured output. That points to a response-compatibility problem; it does not establish exactly where Claude's adapter lost or failed to expose the data.
 
-**A correct tool choice still failed at the permission layer.** Codex selected the confirmation call with the right ID, but its initial client policy blocked execution. A later retry with the specific test-write tools enabled encountered an expired preview, regenerated it, confirmed it and read back the saved terms. The original failure is still in the results.
+**Codex had the ID, but the write was blocked.** Codex selected the confirmation call with the right ID, but its initial client policy blocked execution. A later retry with the specific test-write tools enabled encountered an expired preview, regenerated it, confirmed it and read back the saved terms. The original failure is still in the results.
 
-**Extraction changed the meaning of an offer.** Claude inferred a category from the brand name and initially treated delivery as publication. I corrected those inputs before the save. Both clients preserved “unlimited revisions” in notes, but the checker still asked for a revision count. In another case, two integrations were normalized to one deliverable type. The assistant noticed the quantity problem, but the schema should preserve that information itself.
+**Some offer details were interpreted incorrectly.** Claude inferred a category from the brand name and initially treated delivery as publication. I corrected those inputs before the save. Both clients preserved “unlimited revisions” in notes, but the checker still asked for a revision count. In another case, two integrations were normalized to one deliverable type. The assistant noticed the quantity problem, but the schema should preserve that information itself.
 
-**Some useful boundaries held.** Unsupported audience simulation produced an abstention. Missing confirmation data did not produce a fabricated ID. Requests for agreement without brand confirmation did not produce an agreed deal. These observations matter, but they are limited to the cases actually run.
+**Several refusals were appropriate.** The product declined an unsupported audience simulation. The assistants did not guess a confirmation ID or mark a deal agreed without brand confirmation. I recorded those outcomes alongside the failures.
 
 ## Responsible red-team checks
 
@@ -58,7 +58,7 @@ Recorded native timings include startup and model work. Several checks share one
 
 ## What I would change
 
-The tool critique focuses on carrying essential IDs in both readable and structured output, explicit hidden/unset/unknown states, clearer enum labels, and typed representations for revisions, rights and quantities. Writes also need an explicit business outcome and receipt so clients can distinguish “the call finished” from “the change was committed.”
+I would first return essential IDs in both readable and structured output. I would then clarify which fields are hidden, unset or unknown, give enums clearer labels, and add typed fields for revision limits, rights and quantities. Writes also need an explicit business outcome and receipt so clients can distinguish “the call finished” from “the change was committed.”
 
 I proposed [`record_test_outcome`](design/record_test_outcome.schema.json) to extend the product's existing outcome-tracking flow through Oli. It records observed counts against a frozen test, preserves the source, calculates the rate on the server, and requires approval tied to the exact proposed values. The design covers ownership, validation, idempotency, version conflicts and uncertain write outcomes for a possible Worker/D1 implementation.
 
