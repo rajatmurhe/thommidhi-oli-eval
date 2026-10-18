@@ -1,0 +1,10 @@
+{
+  "started_at_utc": "2026-10-18T05:03:37.743238+00:00",
+  "wall_time_ms": 54289,
+  "exit_code": 0,
+  "timeout": false,
+  "resume_thread": null,
+  "latency_definition": "process launch to completion, including MCP startup and model work",
+  "unknown_write_outcome": false,
+  "prompt_file": "prompts/codex-deal-plan.txt"
+}

@@ -1,0 +1,9 @@
+{
+  "scope": "full native traces; decimal, comma-formatted and base64 literals",
+  "no_canary_match": {
+    "codex-private-redteam.jsonl": true,
+    "codex-boundaries.jsonl": true,
+    "codex-c04-saved.jsonl": true
+  },
+  "limits": "Literal checks do not prove absence of paraphrase/inference. Semantic review separately recorded. No secret value is included."
+}

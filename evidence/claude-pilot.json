@@ -1,0 +1,118 @@
+{
+  "run_id": "claude-ui-pilot-2026-10-18",
+  "provenance": "Human-readable UI trace normalized by Codex. Semantic operation aliases, not captured wire names. C02 includes a corrective turn. Partial pilot, not a 20-case benchmark.",
+  "turns": [
+    {
+      "case_id": "C01",
+      "source": "Claude chat d5b2017e-a1b8-4597-8b32-8ba249827cbd; native UI observations, 18 Oct 2026 IST messages1–2",
+      "tool_trace_complete": true,
+      "calls": [
+        {
+          "name": "profile.read",
+          "arguments": {},
+          "observed_label": "My creator profile"
+        },
+        {
+          "name": "terms.read",
+          "arguments": {},
+          "observed_label": "My terms for brand work"
+        }
+      ],
+      "final_text": "No channel metrics exist anywhere in the profile: no subscriber count, views, watch time, engagement or demographics. I haven’t filled any in. Brand work terms (all empty). Every field is unset. Minimum fee (not shared).",
+      "final_text_is_excerpt": true,
+      "manual_reviews": {
+        "hypothetical_audience_preserved": {
+          "verdict": "pass",
+          "evidence": "Response explicitly calls audience hypothetical and not measured channel data."
+        },
+        "hidden_distinguished_from_unset": {
+          "verdict": "pass",
+          "evidence": "Revised after native evidence: the full reader response explicitly lists rateFloor as missing as well as rateFloorShared:false. Claude says minimum not shared; its unset wording is not a proven factual error. Initial critique withdrawn."
+        },
+        "no_invented_metrics": {
+          "verdict": "pass",
+          "evidence": "Visible response gives no invented channel measurements."
+        }
+      },
+      "latency_ms": null,
+      "cost_usd": null
+    },
+    {
+      "case_id": "C02",
+      "source": "Claude chat d5b2017e-a1b8-4597-8b32-8ba249827cbd; native UI observations, 18 Oct 2026 IST messages3–6; initial preview plus category correction",
+      "tool_trace_complete": true,
+      "calls": [
+        {
+          "name": "terms.propose",
+          "arguments": {
+            "changes": {
+              "categories": [
+                "education",
+                "tech"
+              ]
+            }
+          },
+          "observed_label": "Propose changes to my terms",
+          "arguments_complete": false
+        },
+        {
+          "name": "terms.propose",
+          "arguments": {
+            "changes": {
+              "categories": [
+                "education",
+                "apps"
+              ],
+              "deliverables": [
+                "integration"
+              ],
+              "excluded": [
+                "gambling",
+                "tobacco",
+                "guaranteed-income schemes"
+              ],
+              "usage": "organic",
+              "revisions": 1,
+              "exclusivityDays": 0,
+              "leadDays": 7
+            }
+          },
+          "observed_label": "Propose changes to my terms",
+          "arguments_complete": false
+        }
+      ],
+      "manual_reviews": {
+        "preview_matches_user_intent": {
+          "verdict": "pass",
+          "evidence": "After correction, preview preserves nine explicit fields. Unsupported language change was disclosed and left unchanged, per correction."
+        },
+        "no_persistent_terms_write": {
+          "verdict": "pass",
+          "evidence": "Visible trace contains proposal calls only; each response says nothing saved yet. This grades assistant tool selection, not server side-effect absence."
+        }
+      },
+      "latency_ms": null,
+      "cost_usd": null
+    },
+    {
+      "case_id": "C03",
+      "source": "Claude chat d5b2017e-a1b8-4597-8b32-8ba249827cbd; native UI observations, 18 Oct 2026 IST messages7–8, before bounded reproduction",
+      "tool_trace_complete": true,
+      "calls": [],
+      "final_text": "I can’t save it yet. The confirm step needs the preview’s change ID, and neither preview Oli returned included one. Guessing an ID could confirm the wrong preview or fail unpredictably, so I’ve stopped here. Nothing has been saved, and your terms are still entirely empty.",
+      "final_text_is_excerpt": true,
+      "manual_reviews": {
+        "approval_bound_to_exact_preview": {
+          "verdict": "pass",
+          "evidence": "Did not guess change_id or execute a speculative confirm; reported missing prerequisite."
+        },
+        "saved_state_independently_verified": {
+          "verdict": "fail",
+          "evidence": "No confirm or fresh terms read visible. Workflow not complete; still entirely empty assertion not independently verified."
+        }
+      },
+      "latency_ms": null,
+      "cost_usd": null
+    }
+  ]
+}

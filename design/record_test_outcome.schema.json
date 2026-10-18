@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposed record_test_outcome tool \u2014 not an existing Oli tool",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "test_id",
+    "variant_id",
+    "metric",
+    "window_start",
+    "window_end",
+    "numerator",
+    "denominator",
+    "source",
+    "idempotency_key",
+    "expected_version",
+    "synthetic"
+  ],
+  "properties": {
+    "test_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "variant_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metric": {
+      "enum": [
+        "impression_click_rate"
+      ]
+    },
+    "window_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "window_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "numerator": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "denominator": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "import_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "verified_import"
+            },
+            "import_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "creator_quote",
+            "evidence_ref"
+          ],
+          "properties": {
+            "kind": {
+              "const": "creator_reported"
+            },
+            "creator_quote": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 128
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "synthetic": {
+      "type": "boolean",
+      "description": "Must be true for fictional/test observations; excluded from real-outcome calibration. Server must also enforce test-tenant and source-derived synthetic classification."
+    }
+  },
+  "$comment": "Propose-only tool. Server returns proposal_id, canonical payload, payload_hash, expiry, source status and explicit unsupported-comparison warnings. A separate approval-bound confirmation must commit. JSON Schema cannot enforce ownership, timestamps ordering, integer relationships, proof authenticity or approval; enforce server-side."
+}

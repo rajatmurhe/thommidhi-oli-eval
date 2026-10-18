@@ -1,0 +1,10 @@
+{
+  "started_at_utc": "2026-10-18T05:11:06.233592+00:00",
+  "wall_time_ms": 56848,
+  "exit_code": 0,
+  "timeout": false,
+  "resume_thread": null,
+  "latency_definition": "process launch to completion, including MCP startup and model work",
+  "unknown_write_outcome": false,
+  "prompt_file": "prompts/codex-c04-saved.txt"
+}

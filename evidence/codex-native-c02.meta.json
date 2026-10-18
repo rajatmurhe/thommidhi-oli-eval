@@ -1,0 +1,10 @@
+{
+  "started_at_utc": "2026-10-18T04:25:15.943617+00:00",
+  "wall_time_ms": 19606,
+  "exit_code": 0,
+  "timeout": false,
+  "resume_thread": "01a14d40-a341-7640-82c5-ab72d08574d3",
+  "latency_definition": "process launch to completion, including MCP startup and model work",
+  "unknown_write_outcome": false,
+  "prompt_file": "prompts/codex-c02.txt"
+}
