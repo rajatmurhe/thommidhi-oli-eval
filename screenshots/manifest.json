@@ -1,0 +1,17 @@
+[
+  {
+    "file": "portal-saved-draft.png",
+    "description": "Actual portal screenshot captured before final PDF replacement and submission; not a submission receipt.",
+    "sha256": "3c788f5195c24a741195590376ff2a931710f17781fccda4916e1065b72db0b9"
+  },
+  {
+    "file": "report-overview.png",
+    "description": "Rendered page 1 of the final report; a report preview, not a live product screenshot.",
+    "sha256": "88b463651815e476b27dee5ee833199ab5552949bcbfe7ceaf69380d0bdf89d8"
+  },
+  {
+    "file": "eval-results-report.png",
+    "description": "Rendered page 10 of the final report; a report preview, not a live product screenshot.",
+    "sha256": "efaf755ebd8374cf1d761b18f92cd56356cff7a07b0e4759a5bcead7865a7ee8"
+  }
+]

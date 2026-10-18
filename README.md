@@ -44,6 +44,12 @@ Seventeen regression tests cover partial evidence, call order, forbidden writes,
 
 The native JSONL records preserve calls, arguments, results and final answers. Some checks share a source invocation; do not sum their latencies or treat them as independent samples. Timings include startup and model work. Monetary cost is unknown. Claude evidence comes from visible tool panels rather than a captured native wire transcript.
 
+## Screenshots and report previews
+
+[Open the image gallery](screenshots/README.md) for the saved portal screenshot and final report previews. Captions distinguish live product evidence from rendered report pages. The portal image predates final attachment replacement and is not a submission receipt.
+
+[![Final report overview](screenshots/report-overview.png)](screenshots/README.md)
+
 ## Design sketches
 
 The [outcome tool schema](design/record_test_outcome.schema.json) and [common prediction contract](design/prediction-contract.ts) are proposals, not shipped integrations. The outcome tool extends the product's existing post-publication feedback loop through an assistant-accessible interface.
