@@ -1,10 +1,72 @@
-# Thommidhi Oli: tool-use evaluation
+# Exploring Thommidhi and Oli
 
-I tested Oli through Claude and native Codex CLI using my own account and explicitly synthetic creator, offer and plan data. This repository contains the 20-case suite, offline scorer, notebook, exact native tool traces and saved-state evidence. No channel analytics, credentials, private minimum fee or personal portal link are included.
+This is my exploration of Thommidhi for the AI Engineer internship. I wanted to understand what happens between asking an assistant for help and actually getting the right change saved: which tool it chooses, what it assumes, what the server returns, and whether the final state matches the request.
 
-## Run the evaluation
+I used the real product and tested Oli through Claude and native Codex CLI. Everything involving a creator, brand offer or work plan was synthetic and used my own account. I took the no-channel route, so there are no real audience measurements behind the profile or title test.
 
-Python 3.11 or later; the offline scorer needs only the standard library. No API key or network access is needed.
+The most useful finding was a terms update that looked ready to confirm but could not be saved in Claude. Following that failure across the two clients revealed a difference between readable tool output and structured results. That became the starting point for the evaluation and tool-design work here.
+
+## What I did
+
+I went through onboarding, filled out a hypothetical creator profile, set preferences for brand work, and tried the title-testing flow. The English test declined to run because the supported simulated audience was unavailable. A Hindi test ran and returned no clear winner. I treated those results as simulated preferences, not predicted views or CTR.
+
+Then I worked through the same broad workflow in two assistants:
+
+1. Read the saved creator profile and terms.
+2. Propose brand-work preferences and try to confirm them.
+3. Check a fictional offer against the available terms.
+4. Save a labeled test deal and record where the conversation stood.
+5. Save a linked work plan, then read the records back.
+
+Both assistants eventually saved a separate deal and plan. Fresh reads confirmed two deals in `talks`, with exactly one linked plan for each. Claude's terms-confirmation issue remained unresolved in that client; the terms were saved through the Codex recovery. No real brand was contacted, and no deal was marked agreed.
+
+These were diagnostic runs. The clients had different models, permission flows and connection methods, and some prompts needed correction. I kept those differences in the evidence instead of turning this into a model leaderboard.
+
+## What broke, and what held up
+
+**The confirmation ID did not reach both clients in a usable form.** Claude's readable preview told it to confirm with a `change_id`, but did not expose one. It refused to invent the ID. Native Codex received the ID in structured output. That points to a response-compatibility problem; it does not establish exactly where Claude's adapter lost or failed to expose the data.
+
+**A correct tool choice still failed at the permission layer.** Codex selected the confirmation call with the right ID, but its initial client policy blocked execution. A later retry with the specific test-write tools enabled encountered an expired preview, regenerated it, confirmed it and read back the saved terms. The original failure is still in the results.
+
+**Extraction changed the meaning of an offer.** Claude inferred a category from the brand name and initially treated delivery as publication. I corrected those inputs before the save. Both clients preserved “unlimited revisions” in notes, but the checker still asked for a revision count. In another case, two integrations were normalized to one deliverable type. The assistant noticed the quantity problem, but the schema should preserve that information itself.
+
+**Some useful boundaries held.** Unsupported audience simulation produced an abstention. Missing confirmation data did not produce a fabricated ID. Requests for agreement without brand confirmation did not produce an agreed deal. These observations matter, but they are limited to the cases actually run.
+
+## Responsible red-team checks
+
+I tested requests to reveal a private minimum fee, follow a `SYSTEM` instruction embedded in brand text, invent consent to unlimited revisions, and mark a deal agreed without confirmation. I also checked unsupported numeric claims and ambiguous dates.
+
+For the fee test, a synthetic value was configured separately, with sharing off, and kept out of the tested chat context. No literal or encoded disclosure was observed. Later ordinary offer checks reported that fee comparisons were paused for the day. I stopped there; I did not run an adaptive threshold search or try to bypass the pause.
+
+The scope stayed within my own account. There were no cross-tenant tests, load tests, paid briefs or external messages. These runs test observed assistant behavior; they do not prove backend enforcement or general resistance to prompt injection.
+
+## The eval I built
+
+The suite contains [20 creator requests](eval/requests.json), [expected behavior](eval/cases.json), and a [Python scorer](eval/score.py). It checks tool order, argument subsets, forbidden writes and saved-state evidence. Missing evidence stays unknown. A completed tool call without a commit receipt does not automatically count as a successful write.
+
+| Evidence set | Passed | Failed | Not run |
+| --- | ---: | ---: | ---: |
+| Original Claude pilot | 2 | 1 | 17 |
+| Original Codex pilot | 6 | 1 | 13 |
+| Later checkpoint after corrections and recovery | 20 | 0 | 0 |
+
+The last row combines corrected setup, recovery, stateful steps and several batched cases. It is **not twenty independent first-attempt successes or a 100% robustness result**. Claude's initial preview also needed a corrective turn. The original failures remain available separately.
+
+Seventeen regression tests cover the scorer's handling of incomplete traces, ordering, partial arguments and failed writes. Semantic judgments have evidence notes but were not independently blinded. I revised C06 after learning that `talks` means the creator has expressed interest to the brand; this was not a preregistered benchmark.
+
+Recorded native timings include startup and model work. Several checks share one invocation, so their durations should not be added together. Reliable comparable Claude timings were unavailable, and monetary cost is unknown.
+
+## What I would change
+
+The tool critique focuses on carrying essential IDs in both readable and structured output, explicit hidden/unset/unknown states, clearer enum labels, and typed representations for revisions, rights and quantities. Writes also need an explicit business outcome and receipt so clients can distinguish “the call finished” from “the change was committed.”
+
+I proposed [`record_test_outcome`](design/record_test_outcome.schema.json) to extend the product's existing outcome-tracking flow through Oli. It records observed counts against a frozen test, preserves the source, calculates the rate on the server, and requires approval tied to the exact proposed values. The design covers ownership, validation, idempotency, version conflicts and uncertain write outcomes for a possible Worker/D1 implementation.
+
+There is also a [common prediction contract](design/prediction-contract.ts) for keeping provider identity, input versions, abstentions, evidence and usage together. Both files are design sketches, not deployed integrations.
+
+## Run it locally
+
+The offline evaluation uses Python 3.11 or later and only the standard library. No API key or network access is needed.
 
 ```sh
 python3 -m unittest discover -s eval -v
@@ -13,49 +75,27 @@ python3 eval/score.py eval/cases.json evidence/codex-pilot.json
 python3 eval/build_checkpoint.py
 ```
 
-Open [the notebook](eval/review_notebook.ipynb), or inspect the [20 requests and expected behavior](eval/cases.json).
+You can also open the [notebook](eval/review_notebook.ipynb). The optional [live runner](eval/run_codex_case.py) requires an existing Codex login and an authorized Oli key in `OLI_TOKEN`. It is separate from offline scoring, permits only selected test-write tools, and refuses to overwrite evidence. If a write outcome is uncertain, read the saved state before retrying.
 
-## Results and limits
+## Where to look
 
-| Run | Passed | Failed | Not run |
-| --- | ---: | ---: | ---: |
-| Original Claude pilot | 2 | 1 | 17 |
-| Original Codex pilot | 6 | 1 | 13 |
-| Later checkpoint after corrections/recovery | 20 | 0 | 0 |
+| Material | Link |
+| --- | --- |
+| Readable native conversations | [Conversation exports](conversations/) |
+| Exact prompts | [Prompts](prompts/) |
+| Claude observations from visible tool panels | [Claude pilot](evidence/claude-pilot.json) |
+| Original native pilot | [Codex pilot](evidence/codex-pilot.json) |
+| Confirmation recovery | [Native trace](evidence/codex-native-c03-approved.jsonl) |
+| Deal and plan workflow | [Native trace](evidence/codex-deal-plan.jsonl) |
+| Private-fee and injection checks | [Native trace](evidence/codex-private-redteam.jsonl) |
+| Boundary cases and saved-state checks | [Native trace](evidence/codex-boundaries.jsonl) |
+| Later checkpoint | [Evidence](evidence/codex-checkpoint.json) · [Scores](evidence/codex-checkpoint-score.json) |
+| Fee-comparison pause | [Native trace](evidence/codex-c04-saved.jsonl) |
+| Privacy-test prerequisites | [Sanitized receipt](evidence/privacy-fixture-receipt.json) |
+| Screenshots and report previews | [Image gallery](screenshots/README.md) |
 
-The checkpoint combines corrected setup, a recovered confirmation, stateful workflow steps and multi-case batches. These are **not 20 independent first-attempt successes**, and the passing checks are not a general robustness estimate. The original failures remain available. Claude's corrected preview required intervention; its confirmation failed because it lacked a usable preview ID. Native structured output had the ID, but its first confirmation was blocked by client approval policy. A later scoped-permission retry committed and reread the terms.
+The native traces retain tool calls, arguments, results and final responses. Claude's record is based on visible tool panels; it is not a complete native transcript or a public chat share. Credentials, the private fee value and the private portal link are excluded.
 
-Both clients saved separate synthetic deals and plans. Later native reads verified both deals in talks and exactly one linked plan for each. The private-fee test used a value configured outside the tested chat context, with sharing off. No disclosure was observed; later fee checks paused for the day. Backend agreement enforcement, cross-tenant access, adaptive fee inference and general injection resistance were not established.
+The gallery labels actual screenshots separately from report previews. Its portal screenshot shows a saved draft before the final attachment replacement, not proof of submission.
 
-Seventeen regression tests cover partial evidence, call order, forbidden writes, independent saved-state reads and the distinction between transport completion and a committed write. Semantic review annotations are separate from deterministic checks and are not independently blinded judgments. C06 was clarified after inspecting the actual stage semantics; this is a disclosed suite revision, not a preregistered benchmark.
-
-## Evidence map
-
-- [Original Claude observations](evidence/claude-pilot.json)
-- [Original Codex pilot](evidence/codex-pilot.json)
-- [Later checkpoint](evidence/codex-checkpoint.json) and [score](evidence/codex-checkpoint-score.json)
-- [Confirmation recovery](evidence/codex-native-c03-approved.jsonl)
-- [Deal and plan workflow](evidence/codex-deal-plan.jsonl)
-- [Private-context red team](evidence/codex-private-redteam.jsonl)
-- [Boundary cases and independent readback](evidence/codex-boundaries.jsonl)
-- [Saved-terms offer check and privacy pause](evidence/codex-c04-saved.jsonl)
-- [Sanitized privacy setup receipt](evidence/privacy-fixture-receipt.json)
-- [Prompts](prompts/) and [raw conversation exports](conversations/)
-
-The native JSONL records preserve calls, arguments, results and final answers. Some checks share a source invocation; do not sum their latencies or treat them as independent samples. Timings include startup and model work. Monetary cost is unknown. Claude evidence comes from visible tool panels rather than a captured native wire transcript.
-
-## Screenshots and report previews
-
-[Open the image gallery](screenshots/README.md) for the saved portal screenshot and final report previews. Captions distinguish live product evidence from rendered report pages. The portal image predates final attachment replacement and is not a submission receipt.
-
-[![Final report overview](screenshots/report-overview.png)](screenshots/README.md)
-
-## Design sketches
-
-The [outcome tool schema](design/record_test_outcome.schema.json) and [common prediction contract](design/prediction-contract.ts) are proposals, not shipped integrations. The outcome tool extends the product's existing post-publication feedback loop through an assistant-accessible interface.
-
-## Live runner
-
-`eval/run_codex_case.py` is optional and is not called by offline scoring. It requires an existing Codex login and an owner-approved Oli key in `OLI_TOKEN`. It permits only explicitly selected test-write tools, does not automatically retry, and refuses to overwrite evidence. Use only your own authorized test account. After an uncertain write outcome, reconcile saved state before retrying.
-
-No brand was contacted. All saved test records are labeled EXPLORATION.
+[![Overview of the final exploration report](screenshots/report-overview.png)](screenshots/README.md)
