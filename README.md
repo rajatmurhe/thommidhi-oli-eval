@@ -2,7 +2,7 @@
 
 This is my exploration of Thommidhi for the AI Engineer internship. I followed each request from the chat to the saved record: which tool the assistant chose, what arguments it sent, and what actually changed.
 
-I used the real product and tested Oli through Claude and native Codex CLI. Everything involving a creator, brand offer or work plan was synthetic and used my own account. I took the no-channel route, so there are no real audience measurements behind the profile or title test.
+I tested Thommidhi’s creator workflow and Oli integration in the real product. Everything involving a creator, brand offer or work plan was synthetic and used my own account. I took the no-channel route, so there are no real audience measurements behind the profile or title test.
 
 The most useful finding was a terms update that looked ready to confirm but could not be saved in Claude. Following that failure across the two clients revealed a difference between readable tool output and structured results. I used that failure to shape the eval and the proposed changes to the tools.
 
